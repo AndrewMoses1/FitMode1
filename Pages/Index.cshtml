@@ -1,0 +1,1269 @@
+﻿@page
+@using fitMode
+@namespace fitMode.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+    //The following variable is used to get the CSRF token that is needed for POST requests.
+    var requestToken = Antiforgery.GetAndStoreTokens(HttpContext).RequestToken;
+    float totalPrice = 0.0f;
+    if (Model.Cart1 != null) {
+        foreach (var cart in Model.Cart1) {
+            if (cart != null && cart.names != null && cart.prices != null) {
+                //The following for block is used to total the item prices to provide the total dollar amount of the shopping cart in the totalPrice variable.
+                for (int i = 0; i < cart.names.Count && i < cart.prices.Count; i++) {
+                    totalPrice += Convert.ToSingle(cart.prices[i]);
+                }
+            }
+        }
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik&display=swap" rel="stylesheet"> 
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mada:wght@900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200&display=swap" rel="stylesheet"> 
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap" rel="stylesheet">  
+    <link href="https://fonts.googleapis.com/css2?family=Protest+Guerrilla&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&display=swap" rel="stylesheet"> 
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@600&display=swap" rel="stylesheet">  
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav class="navbar container-fluid">
+            <div class="navbar-desktop-container d-flex flex-row">
+                <img class="navbar-toggler d-flex d-xl-none" onclick="showMenu()" src="~/images/menuIcon.png" alt="A Menu-Icon Image" />
+                <a class="navbar-brand" href="#">Fit Mode</a>
+                <ul class="navbar-desktop-links d-none d-xl-flex flex-row">
+                    <li onclick="scrollToTop()">Home</li>
+                    <li>/</li>
+                    <li onclick="scrollToAbout()">About</li>
+                    <li>/</li>
+                    <li onclick="scrollToProducts()">Products</li>
+                    <li>/</li>
+                    <li onclick="scrollToContact()">Contact</li>
+                </ul>
+                <div class="navbar-desktop-pill d-none d-xl-flex flex-row">
+                    <p class="navbar-desktop-join">Join Our Gym!</p>
+                    <img class="navbar-desktop-cartIcon" onclick="showCart()" src="~/images/blackCart.png" alt="A Shopping Cart Image" />
+                </div>
+                <img class="navbar-cart-icon d-flex d-xl-none" onclick="showCart()" src="~/images/whiteCart.png" alt="A Shopping Cart Image" />
+            </div>
+            <div class="navbar-mobile-menu d-flex flex-column d-xl-none justify-content-between align-items-center ">
+                <div class="navbar-mobile-menuTop container-fluid d-flex flex-row justify-content-between">
+                    <img class="navbar-mobile-exit" onclick="closeMenu()" src="~/images/mobileExit.png" alt="An X Clipart" />
+                    <a class="navbar-mobile-menuBrand" href="#">Fit Mode</a>
+                    <div></div>
+                </div>
+                <ul class="navbar-mobile-links d-flex flex-column">
+                    <a href="#"><li onclick="scrollToTop()">Home</li></a>
+                    <a href="#"><li onclick="scrollToAbout()">About</li></a>
+                    <a href="#"><li onclick="scrollToProducts()">Products</li></a>
+                    <a href="#"><li onclick="scrollToContact()">Contact</li></a>
+                </ul>
+                <div class="navbar-mobile-media d-flex flex-row">
+                    <img class="d-flex" src="~/images/grayInstagram.png" alt="A Gray Instagram Logo" />
+                    <img class="d-flex" src="~/images/grayFacebook.png" alt="A Gray Facebook Logo" />
+                    <img class="d-flex" src="~/images/grayTwitter.png" alt="A Gray Twitter Logo" />
+                    <img class="d-flex" src="~/images/grayPhone.png" alt="A Gray Phone Logo" />
+                </div>
+            </div>
+        </nav>
+        
+        @* Moved the shopping-cart outside of the nav element because of issues that were occurring from the blur effect
+           that executed once the shopping cart was opened from the MD breakpoint of 768px. *@
+        <div class="shopping-cart">
+            <div class="shopping-cart-top container-fluid d-flex flex-row justify-content-between">
+                <div></div>
+                <p>Shopping Cart</p>
+                <img src="~/images/mobileExit.png" onclick="closeCart()" alt="An X Clipart" />
+            </div>
+            <div class="cart-entries d-flex flex-column">
+                @if (Model.Cart1 != null && Model.Cart1.Count > 0) {
+                    for (int i = 0; Model.Cart1?[0]?.names != null && i < Model.Cart1[0].names?.Count; i++) {
+                        <div class="cart-entry d-flex flex-column">
+                            <div class="cart-entry-outerDiv d-flex flex-row">
+                                <div class="cart-entry-innerDiv d-flex flex-row">
+                                    <img class="cart-entry-productImage" src="@Model.Cart1[0].images?[i]" alt="An Image Of A Product In The Shopping Cart"/>
+                                    <div class="cart-entry-middleColumn d-flex flex-column">
+                                        <p class="cart-entry-productName">@Model.Cart1[0].names?[i]</p>
+                                        <div class="cart-entry-quantity d-flex flex-row">                     
+                                            <button class="cart-entry-minus">-</button>
+                                            <img class="cart-entry-minus-spinIcon" src="@Url.Content("~/images/spin.png")" alt="A Spinning Refresh Icon Clipart" />
+                                            <div class="cart-entry-quantity-cover"></div>
+                                            <p class="cart-entry-count">@Model.Cart1[0].quantities?[i]</p>
+                                            <button class="cart-entry-plus">+</button>
+                                            <img class="cart-entry-plus-spinIcon" src="@Url.Content("~/images/spin.png")" alt="A Spinning Refresh Icon Clipart" />
+                                        </div> 
+                                        <p class="cart-entry-price">$@Model.Cart1[0].prices?[i]</p>
+                                    </div>
+                                </div>
+                                <img class="cart-entry-trashCan" src="@Url.Content("~/images/trashcan.png")" alt="A Trashcan Icon Clipart" />
+                                <div class="cart-entry-trashCan-cover"></div>
+                                <img class="cart-entry-trashCan-spinIcon" src="@Url.Content("~/images/spin.png")" alt="A Spinning Refresh Icon Clipart" />
+                            </div>
+                        </div>
+                    }
+                }
+                else {
+                    <p class="shopping-cart-empty">There are currently no items <br> in your shopping cart</p>
+                }
+            </div>
+            @if (Model.Cart1 != null && Model.Cart1.Count > 0) {
+                <div class="shopping-cart-total d-flex flex-row">
+                    <p class="shopping-cart-totalPrice">Total: $@totalPrice</p>
+                </div>
+            }
+            else {
+            }
+        </div>
+    </header>
+
+    <main role="main">
+
+        @* HOME *@
+
+        <div class="home-container-xs d-flex d-md-none flex-column">
+            <p>Get 1 month free when you sign up today!</p>
+            <h1>Modern Fitness Centers At An Affordable Price</h1>
+            <div class="home-container-xs-classPhoto">
+                <img src="~/images/gym.jpg" alt="A Cycling Class Photo" />
+                <div></div>
+            </div>
+            <button>Join Us</button>
+            <div class="home-container-xs-newsletter d-flex flex-column">
+                <p>Subscribe Today To <br> Our Newsletter!</p>
+                <p>Email Address</p>
+                <input placeholder="Email@domain.com">
+                <p>Name</p>
+                <input placeholder="First Name">
+                <div class="d-flex flex-row">
+                    <p>Submit Your Info</p>
+                    <p>↓</p>
+                </div>
+            </div>
+            <h2>Amenities</h2>
+            <div class="home-container-xs-amenities d-flex flex-row justify-content-center">
+                <div class="d-flex flex-column">
+                    <img src="~/images/basketball.png" alt="A Basketball Clipart" />
+                </div>
+                <div class="d-flex flex-column">
+                    <img src="~/images/hottub.png" alt="A Hot Tub Clipart" />
+                </div>
+                <div class="d-flex flex-column">
+                    <img src="~/images/childcare.png" alt="A Baby Clipart" />
+                </div>
+                <div class="d-flex flex-column">
+                    <img src="~/images/racquetball.png" alt="A Racquetball Clipart" />
+                </div>
+            </div>
+            <h2>Connect</h2>
+            <div class="home-container-xs-socialMedia d-flex flex-row justify-content-center">
+                <img src="~/images/artisticInstagram.png" alt="An Instagram Logo" />
+                <img src="~/images/artisticFacebook.png" alt="A Facebook Logo" />
+                <img src="~/images/artisticTwitter.png" alt="A Twitter Logo" />
+                <img src="~/images/artisticPhone.png" alt="A Phone Logo" />
+            </div>
+            <div class="home-container-xs-app d-flex flex-column">
+                <img src="~/images/phoneNotification.png" alt="A Phone Notification Clipart" />
+                <p>Download <br> Our <br> App</p>
+                <p>Available <br> For iOS <br> And <br> Android</p>
+                <img src="~/images/fitModeApp.png" alt="A Fit Mode App Clipart" />
+            </div>
+        </div>
+
+        <p class="exclusive-offers-md d-none d-md-flex">Exclusive offers when you sign up for our newsletter! &nbsp;<span class="exclusive-offers-md-highlight">Get 1 month free</span>&nbsp;when you sign up today!</p>
+        <div class="home-container-md d-none d-md-flex flex-column">
+            <div class="home-container-md-classPhoto">
+                <img src="~/images/gym.jpg" alt="A Cycling Class Photo" />
+                <div></div>
+            </div>
+            <h1>Modern Fitness Centers At An Affordable Price</h1>
+            <div class="home-container-md-newsletter d-flex flex-column align-items-center">
+                <p>Sign Up For Our Newsletter!</p>
+                <p>Email Address</p>
+                <input placeholder="Email@domain.com">
+                <p>Phone Number</p>
+                <input placeholder="Your Phone Number">
+                <p>Name</p>
+                <input placeholder="First Name">
+                <div class="d-flex flex-row">
+                    <p>Submit Your Info</p>
+                    <p>↓</p>
+                </div>
+            </div>
+
+            @* The following home-container-md-socialMedia may seem out of place but this is because
+               of its alignment once the screen width reaches 1350px. *@
+            <h2>Connect</h2>
+            <div class="home-container-md-socialMedia d-none d-md-flex">
+                <img src="~/images/artisticInstagram.png" alt="An Instagram Logo" />
+                <img src="~/images/artisticFacebook.png" alt="A Facebook Logo" />
+                <img src="~/images/artisticTwitter.png" alt="A Twitter Logo" />
+                <img src="~/images/artisticPhone.png" alt="A Phone Logo" />
+            </div>
+            <h2>Amenities</h2>
+            <div class="home-container-md-amenities d-flex flex-row">
+                <div class="d-flex flex-column">
+                    <img src="~/images/basketball.png" alt="A Basketball Clipart" />
+                </div>
+                <div class="d-flex flex-column">
+                    <img src="~/images/hottub.png" alt="A Hot Tub Clipart" />
+                </div>
+                <div class="d-flex flex-column">
+                    <img src="~/images/childcare.png" alt="A Baby Clipart" />
+                </div>
+                <div class="d-flex flex-column">
+                    <img src="~/images/racquetball.png" alt="A Racquetball Clipart" />
+                </div>
+            </div>
+        </div>
+
+        @* Left this out of the home-container-md because it was intefering with the width: max-content property
+           since the solo-container-md-app element is set to width: 100% to fit the entire width of the window. *@
+        <div class="solo-container-md-app d-none d-md-flex flex-row">
+            <div class="d-none d-md-flex flex-column">
+                <p>Download Our Mobile App And Earn Points Every Visit!</p>
+                <div class="d-none d-md-flex flex-row">
+                    <img class="d-none d-md-flex" src="~/images/fitModeApp.png" alt="A Fit Mode App Clipart" />
+                    <div class="solo-container-md-available d-none d-lg-flex flex-column">
+                        <p class="d-none d-lg-flex">Available for both iOS and Android users.</p>
+                        <p class="d-none d-lg-flex">Click on the image to</p>
+                        <div class="d-none d-lg-flex d-row">
+                            <img class="d-none d-lg-flex" src="~/images/leftArrow.png" alt="An Arrow Pointing Left Clipart" />
+                            <p class="d-none d-lg-flex">begin downloading.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="solo-container-md-features">
+                <p>Fit Mode <br> App Features</p>
+                <p>· Class Notifications <br><br> · Class Scheduler <br><br> · Earn Rewards Point!</p>
+            </div>
+            <img class="d-none d-md-flex" src="~/images/phoneNotification.png" alt="A Phone Notification Clipart" />
+        </div>
+
+        @* HOME *@
+
+        @* ABOUT *@
+        <div class="about-container-xs d-flex d-md-none flex-column">
+            <div class="about-container-xs-about d-flex flex-column align-items-center">
+                <img src="~/images/pullup.png" alt="A Photo Of A Guy Doing A Pull-up" />
+                <h2>About</h2>
+                <p>We believe in the importance of consistency and determination. &nbsp;Life is about making daily incremental gains and not trying to do it all in one day. &nbsp;We strive to provide an environment where you can feel comfortable, but challenged at the same time. &nbsp;We're glad you're here and hope you join us!</p>
+            </div>
+            <div class="about-container-xs-membership d-flex flex-column">
+                <h3>Memberships</h3>
+                <p>Choose between the FM Premium Membership or the Classic Membership. &nbsp;Access to all cardio and strength equipment is included with both along with many other features!</p>
+                <div class="about-container-xs-membershipPremium d-flex flex-column align-items-center">
+                    <div class="d-flex flex-row justify-content-center">
+                        <h4>FM Premium®</h4>
+                        <p>Best Value</p>
+                    </div>
+                    <p>Receive access to all gyms across <br> the country plus all the benefits <br> of the classic membership.</p>
+                    <p>Join Now</p>
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        <p>Plus taxes and fees</p>
+                        <div class="d-flex flex-column align-items-center">
+                            <p>Starting at</p>
+                            <p>$29.99</p>
+                            <p>/month</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-container-xs-membershipClassic d-flex flex-column align-items-center">
+                    <h4>Classic</h4>
+                    <p>Enjoy unlimited access to all<br> cardio and strength equipment <br> as well as many other features.</p>
+                    <p>Join Now</p>
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        <p>Plus taxes and fees</p>
+                        <div class="d-flex flex-column align-items-center">
+                            <p>Starting at</p>
+                            <p>$19.99</p>
+                            <p>/month</p>
+                        </div>
+                    </div>
+                </div>
+                <p>*12-month contract commitment is required for both memberships, which includes an early termination fee of $99. &nbsp; Taxes will be in accordance with local and state regulations. &nbsp;Classic memberships start at $19.99 and PF Premium memberships start at $29.99.  &nbsp;Each membership is subject to an annual fee of $59. &nbsp;Every participant must be at least 18 years old, or have a parent/guardian present at contract signing. &nbsp;We reserve the right to change membership pricing or any other type of pricing without prior notice to participants. &nbsp;©2024 Fit Mode Franchising LLC</p>
+            </div>
+        </div>
+
+        <div class="about-container-md d-none d-md-flex flex-column">
+            <h3>Memberships</h3>
+            <p>Choose between the FM Premium Membership or the Classic Membership. &nbsp;Access to all cardio and strength equipment is included with both along with many other features!</p>
+            <div class="about-container-md-membership d-flex flex-row">
+                <div class="about-container-md-membershipPremium d-flex flex-column">
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        <h4>FM Premium®</h4>
+                        <p>Best Value</p>
+                    </div>
+                    <p>Receive access to all gyms across <br> the country plus all the benefits <br> of the classic membership.</p>
+                    <p>Join Now</p>
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        <p>Plus taxes and fees</p>
+                        <div class="d-flex flex-column align-items-center">
+                            <p>Starting at</p>
+                            <p>$29.99</p>
+                            <p>/month</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-container-md-membershipClassic d-flex flex-column">
+                    <h4>Classic</h4>
+                    <p>Enjoy unlimited access to all<br> cardio and strength equipment <br> as well as many other features.</p>
+                    <p>Join Now</p>
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        <p>Plus taxes and fees</p>
+                        <div class="d-flex flex-column align-items-center">
+                            <p>Starting at</p>
+                            <p>$19.99</p>
+                            <p>/month</p>
+                        </div>
+                    </div>
+                </div>
+                <p>*12-month contract commitment is required for both memberships, which includes an early termination fee of $99. &nbsp; Taxes will be in accordance with local and state regulations. &nbsp;Classic memberships start at $19.99 and PF Premium memberships start at $29.99.  &nbsp;Each membership is subject to an annual fee of $59. &nbsp;Every participant must be at least 18 years old, or have a parent/guardian present at contract signing. &nbsp;We reserve the right to change membership pricing or any other type of pricing without prior notice to participants. &nbsp;©2024 Fit Mode Franchising LLC</p>
+            </div>
+            <div class="about-container-md-about d-flex flex-row align-items-center">
+                <div class="about-container-md-imageContainer">
+                    <img src="~/images/battleRopes.jpg" alt="A Photo Of Someone Using Battle Ropes" />
+                </div>
+                <div class="d-flex flex-column">
+                    <h2>About</h2>
+                    <p>We believe in the importance of consistency and determination. &nbsp;Life is about making daily incremental gains and not trying to do it all in one day. &nbsp;We strive to provide an environment where you can feel comfortable, but challenged at the same time. &nbsp;We're glad you're here and hope you join us!</p>
+                </div>
+                <div class="about-container-md-classes">
+                    <p>Classes</p>
+                    <img class="about-container-md-zumbaImage" src="~/images/zumba.png" alt="A Photo Of A Zumba Class (1 of 3)" />
+                    <p class="about-container-md-zumbaText">Zumba</p>
+                    <img class="about-container-md-cyclingImage" src="~/images/cycling.png" alt="A Photo Of A Cycling Class (2 of 3)" />
+                    <p class="about-container-md-cyclingText">Cycling</p>
+                    <img class="about-container-md-crossFitImage" src="~/images/crossFit.png" alt="A Photo Of A CrossFit Class (3 of 3)" />
+                    <p class="about-container-md-crossFitText">CrossFit</p>
+                </div>
+            </div>
+        </div>
+
+        @* ABOUT *@
+
+        @* PRODUCTS *@
+
+        <div class="products-container-xs d-flex d-md-none flex-column">
+            <h2>Products</h2>
+            <h3>Weights</h3>
+            <div id="carouselExampleCaptions" class="products-container-xs-weights carousel slide">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="3" aria-label="Slide 4"></button>
+                    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="4" aria-label="Slide 5"></button>
+                    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="5" aria-label="Slide 6"></button>
+                </div>
+                <div class="products-container-xs-weights-inner carousel-inner">
+                    <div class="carousel-item active">
+                        <img src="~/images/mediumWeightDumbbells.png" class="d-block" alt="A Photo Of Medium-Sized Dumbbells">
+                        <div class="carousel-caption d-block">
+                            <h5>Medium-Weight Dumbbells</h5>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <p>FM Fitness</p>
+                            <p>Medium-Weight Dumbbells (LB)</p>
+                            <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $21.99</p>
+                        </div>
+                        <button class="add-to-cart-btn" data-name="Medium-Weight Dumbbells" data-price="21.99" data-quantity="1" data-image="images/mediumWeightDumbbells.png">Add To Cart</button>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="~/images/heavyWeightDumbbells.png" class="d-block" alt="A Photo Of Large-Sized Dumbbells">
+                        <div class="carousel-caption d-block">
+                            <h5>Heavy-Weight Dumbbells</h5>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <p>FM Fitness</p>
+                            <p>Heavy-Weight Dumbbells (LB)</p>
+                            <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $31.99</p>
+                        </div>
+                        <button class="add-to-cart-btn" data-name="Heavy-Weight Dumbbells" data-price="31.99" data-quantity="1" data-image="images/heavyWeightDumbbells.png">Add To Cart</button>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="~/images/mediumWeightKettlebell.png" class="d-block" alt="A Photo Of A Medium-Sized Kettlebell">
+                        <div class="carousel-caption d-block">
+                            <h5>Medium-Weight KettleBell</h5>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <p>FM Fitness</p>
+                            <p>Medium-Weight KettleBell (LB)</p>
+                            <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $24.99</p>
+                        </div>
+                        <button class="add-to-cart-btn" data-name="Medium-Weight Kettlebell" data-price="24.99" data-quantity="1" data-image="images/mediumWeightKettlebell.png">Add To Cart</button>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="~/images/heavyWeightKettlebell.png" class="d-block" alt="A Photo Of A Large-Sized Kettlebell">
+                        <div class="carousel-caption d-block">
+                            <h5>Heavy-Weight KettleBell</h5>
+                       </div>
+                        <div class="d-flex flex-column">
+                            <p>FM Fitness</p>
+                            <p>Heavy-Weight KettleBell (LB)</p>
+                            <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $29.99</p>
+                        </div>
+                        <button class="add-to-cart-btn" data-name="Heavy-Weight Kettlebell" data-price="29.99" data-quantity="1" data-image="images/heavyWeightKettlebell.png">Add To Cart</button>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="~/images/lightWeightDumbbells.png" class="d-block" alt="A Photo Of Small-Sized Dumbbells">
+                        <div class="carousel-caption d-block">
+                            <h5>Light-Weight Dumbbells</h5>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <p>FM Fitness</p>
+                            <p>Light-Weight Dumbbells (LB)</p>
+                            <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $28.99</p>
+                        </div>
+                        <button class="add-to-cart-btn" data-name="Light-Weight Dumbbells" data-price="28.99" data-quantity="1" data-image="images/lightWeightDumbbells.png">Add To Cart</button>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="~/images/lightWeightDumbbell.png" class="d-block" alt="A Photo Of A Small-Sized Dumbbell">
+                        <div class="carousel-caption d-block">
+                            <h5>Light-Weight Dumbbell</h5>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <p>FM Fitness</p>
+                            <p>Light-Weight Dumbbell (LB)</p>
+                            <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $17.99</p>
+                        </div>
+                        <button class="add-to-cart-btn" data-name="Light-Weight Dumbbell" data-price="17.99" data-quantity="1" data-image="images/lightWeightDumbbells.png">Add To Cart</button>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" style="cursor: auto;" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+                    <img class="carousel-control-prev-icon" style="cursor: pointer;" src="~/images/arrow.png" aria-hidden="true"></img>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" style="cursor: auto;" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+                    <img class="carousel-control-next-icon" style="cursor: pointer;" src="~/images/arrow2.png" aria-hidden="true"></img>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+            <h3>Resistance</h3>
+            <div id="carouselExampleIndicators" class="products-container-xs-resistance carousel slide">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" aria-label="Slide 1" class="active" aria-current="true"></button>
+                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="3" aria-label="Slide 4"></button>
+                </div>
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img src="~/images/lightResistanceBand.png" class="d-block" alt="A Photo Of A Small-Sized Resistance Band">
+                        <div class="carousel-caption d-block">
+                            <h5>Light-Resistance Band</h5>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <p>FM Fitness</p>
+                            <p>Light-Resistance Band</p>
+                            <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $21.99</p>
+                        </div>
+                        <button class="add-to-cart-btn" data-name="Light-Resistance Band" data-price="21.99" data-quantity="1" data-image="images/lightResistanceBand.png">Add To Cart</button>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="~/images/mediumResistanceBand.png" class="d-block" alt="A Photo Of A Medium-Sized Resistance Band">
+                        <div class="carousel-caption d-block">
+                            <h5>Medium-Resistance Band</h5>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <p>FM Fitness</p>
+                            <p>Medium-Resistance Band</p>
+                            <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $25.99</p>
+                        </div>
+                        <button class="add-to-cart-btn" data-name="Medium-Resistance Band" data-price="25.99" data-quantity="1" data-image="images/mediumResistanceBand.png">Add To Cart</button>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="~/images/heavyResistanceBand.png" class="d-block" alt="A Photo Of A Large-Sized Resistance Band">
+                        <div class="carousel-caption d-block">
+                            <h5>Heavy-Resistance Band</h5>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <p>FM Fitness</p>
+                            <p>Heavy-Resistance Band</p>
+                            <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $29.99</p>
+                        </div>
+                        <button class="add-to-cart-btn" data-name="Heavy-Resistance Band" data-price="29.99" data-quantity="1" data-image="images/heavyResistanceBand.png">Add To Cart</button>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="~/images/resistanceBandSet.png" class="d-block" alt="A Photo Of A Resistance Band Set">
+                        <div class="carousel-caption d-block">
+                            <h5>Resistance Band Set</h5>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <p>FM Fitness</p>
+                            <p>Resistance Band Set (LB)</p>
+                            <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $33.99</p>
+                        </div>
+                        <button class="add-to-cart-btn" data-name="Resistance Band Set" data-price="33.99" data-quantity="1" data-image="images/resistanceBandSet.png">Add To Cart</button>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" style="cursor: auto;" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+                    <img class="carousel-control-prev-icon" src="~/images/arrow.png" style="cursor: pointer;" aria-hidden="true"></img>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" style="cursor: auto;" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+                    <img class="carousel-control-next-icon" src="~/images/arrow2.png" style="cursor: pointer;" aria-hidden="true"></img>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="products-container-md d-none d-md-flex flex-column align-items-center">
+            <h2>Products</h2>
+            <h3>Weights</h3>
+            <div class="d-flex flex-row">
+                <div class="d-flex flex-column">
+                    <p>Medium-Weight Dumbbells</p>
+                    <img src="~/images/mediumWeightDumbbells.png" alt="A Photo Of Medium-Sized Dumbbells" />
+                    <div class="d-flex flex-column">
+                        <p>FM Fitness</p>
+                        <p>Medium-Weight Dumbbells (LB)</p>
+                        <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $21.99</p>
+                        <button class="add-to-cart-btn" data-name="Medium-Weight Dumbbells" data-price="21.99" data-quantity="1" data-image="images/mediumWeightDumbbells.png">Add To Cart</button>
+                    </div>
+                </div>
+                <div class="d-flex flex-column">
+                    <p>Heavy-Weight Dumbbells</p>
+                    <img src="~/images/heavyWeightDumbbells.png" alt="A Photo Of Large-Sized Dumbbells" />
+                    <div class="d-flex flex-column">
+                        <p>FM Fitness</p>
+                        <p>Heavy-Weight Dumbbells (LB)</p>
+                        <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $31.99</p>
+                        <button class="add-to-cart-btn" data-name="Heavy-Weight Dumbbells" data-price="31.99" data-quantity="1" data-image="images/heavyWeightDumbbells.png">Add To Cart</button>
+                    </div>
+                </div>
+                <div class="d-flex flex-column">
+                    <p>Medium-Weight Kettlebell</p>
+                    <img src="~/images/mediumWeightKettlebell.png" alt="A Photo Of A Medium-Sized Kettlebell" />
+                    <div class="d-flex flex-column">
+                        <p>FM Fitness</p>
+                        <p>Medium-Weight Kettlebell (LB)</p>
+                        <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $24.99</p>
+                        <button class="add-to-cart-btn" data-name="Medium-Weight Kettlebell" data-price="24.99" data-quantity="1" data-image="images/mediumWeightKettlebell.png">Add To Cart</button>
+                    </div>
+                </div>
+                <div class="d-flex flex-column">
+                    <p>Heavy-Weight Kettlebell</p>
+                    <img src="~/images/heavyWeightKettlebell.png" alt="A Photo Of A Large-Sized Dumbbells" />
+                    <div class="d-flex flex-column">
+                        <p>FM Fitness</p>
+                        <p>Heavy-Weight Kettlebell (LB)</p>
+                        <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $29.99</p>
+                        <button class="add-to-cart-btn" data-name="Heavy-Weight Kettlebell" data-price="29.99" data-quantity="1" data-image="images/heavyWeightKettlebell.png">Add To Cart</button>
+                    </div>
+                </div>
+                <div class="d-flex flex-column">
+                    <p>Light-Weight Dumbbells</p>
+                    <img src="~/images/lightWeightDumbbells.png" alt="A Photo Of Small-Sized Dumbbells" />
+                    <div class="d-flex flex-column">
+                        <p>FM Fitness</p>
+                        <p>Light-Weight Dumbbells (LB)</p>
+                        <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $28.99</p>
+                        <button class="add-to-cart-btn" data-name="Light-Weight Dumbbells" data-price="28.99" data-quantity="1" data-image="images/lightWeightDumbbells.png">Add To Cart</button>
+                    </div>
+                </div>
+                <div class="d-flex flex-column">
+                    <p>Light-Weight Dumbbell</p>
+                    <img src="~/images/lightWeightDumbbell.png" alt="A Photo Of A Small-Sized Dumbbells" />
+                    <div class="d-flex flex-column">
+                        <p>FM Fitness</p>
+                        <p>Light-Weight Dumbbell (LB)</p>
+                        <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $17.99</p>
+                        <button class="add-to-cart-btn" data-name="Light-Weight Dumbbell" data-price="17.99" data-quantity="1" data-image="images/lightWeightDumbbells.png">Add To Cart</button>
+                    </div>
+                </div>
+            </div>
+            <h3>Resistance</h3>
+
+            @* The following div (products-container-md-color) was mostly implemented to create a flush color line from the weights products *@
+            <div class="products-container-md-color d-flex flex-column align-items-center">
+                <div class="d-flex flex-row">
+                    <div class="d-flex flex-column">
+                        <p>Light-Resistance Band</p>
+                        <img src="~/images/lightResistanceBand.png" alt="A Photo Of A Small-Sized Resistance Band" />
+                        <div class="d-flex flex-column">
+                            <p>FM Fitness</p>
+                            <p>Light-Resistance Band</p>
+                            <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $21.99</p>
+                            <button class="add-to-cart-btn" data-name="Light-Resistance Band" data-price="21.99" data-quantity="1" data-image="images/lightResistanceBand.png">Add To Cart</button>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <p>Medium-Resistance Band</p>
+                        <img src="~/images/mediumResistanceBand.png" alt="A Photo Of A Medium-Sized Resistance Band" />
+                        <div class="d-flex flex-column">
+                            <p>FM Fitness</p>
+                            <p>Medium-Resistance Band</p>
+                            <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $25.99</p>
+                            <button class="add-to-cart-btn" data-name="Medium-Resistance Band" data-price="25.99" data-quantity="1" data-image="images/mediumResistanceBand.png">Add To Cart</button>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <p>Heavy-Resistance Band</p>
+                        <img src="~/images/heavyResistanceBand.png" alt="A Photo Of A Large-Sized Resistance Band" />
+                        <div class="d-flex flex-column">
+                            <p>FM Fitness</p>
+                            <p>Heavy-Resistance Band</p>
+                            <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $29.99</p>
+                            <button class="add-to-cart-btn" data-name="Heavy-Resistance Band" data-price="29.99" data-quantity="1" data-image="images/heavyResistanceBand.png">Add To Cart</button>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <p>Resistance Band Set</p>
+                        <img src="~/images/resistanceBandSet.png" alt="A Photo Of A Resistance Band Set" />
+                        <div class="d-flex flex-column">
+                            <p>FM Fitness</p>
+                            <p>Resistance Band Set</p>
+                            <p>Starting at &nbsp;&nbsp;|&nbsp;&nbsp; $33.99</p>
+                            <button class="add-to-cart-btn" data-name="Resistance Band Set" data-price="33.99" data-quantity="1" data-image="images/resistanceBandSet.png">Add To Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* PRODUCTS *@
+
+        @* CONTACT *@
+        <div class="contact-container-xs d-flex d-md-none flex-column align-items-center">
+            <h2>Contact</h2>
+            <div class="d-flex flex-column">
+                <p>@@</p>
+                <h3>E-Mail Address</h3>
+                <p>Send us a short or descriptive email with any questions, comments, or concerns you may have regarding Fit Mode's website or services.</p>
+                <div class="d-flex flex-row">
+                    <a href="#">Support@FitMode.com &nbsp;&nbsp;&nbsp;</a>
+                    <a href=#>↓</a>
+                </div>
+            </div>
+            <div class="d-flex flex-column">
+                <img src="~/images/thumb.png" alt="A Thumbs Up Clipart" />
+                <h3>Social Media</h3>
+                <p>Follow us on social media and earn extra bonus points as well as free cash when you participate in promotions that require you to repost certain content.</p>
+                <div class="d-flex flex-row">
+                    <img src="~/images/blueInstagram.png" alt="A Blue Instagram Logo">
+                    <img src="~/images/blueFacebook.png" alt="A Blue Facebook Logo">
+                    <img src="~/images/blueTwitter.png" alt="A Blue Twitter Logo">
+                </div>
+            </div>
+            <div class="d-flex flex-column">
+                <img src="~/images/support.png" alt="A Person And A Text Bubble Clipart" />
+                <h3>Customer Support</h3>
+                <p>Chat with a Fit Mode representative who can help you with various tasks such as answering questions, upgrading your membership or simply paying your bill.</p>
+                <div class="d-flex flex-row">
+                    <a href="#">Chat with a representative &nbsp;&nbsp;&nbsp;</a>
+                    <a href=#>↓</a>
+                </div>
+            </div>
+            <div class="d-flex flex-column">
+                <img src="~/images/address.png" alt="A Home And Location Clipart" />
+                <h3>Mailing Address</h3>
+                <p>Fit Mode Inc. <br> 1800 Something Ave. <br> Somewhere, CA 99550 <br> USA</p>
+                <div class="d-flex flex-row">
+                    <a href="#">Locate us on Google Maps &nbsp;&nbsp;&nbsp;</a>
+                    <a href=#>↓</a>
+                </div>
+            </div>
+        </div>
+        <div class="contact-container-md d-none d-md-flex flex-row">
+            <h2>Contact</h2>
+            <div class="d-flex flex-column">
+                <p>@@</p>
+                <h3>E-Mail Address</h3>
+                <p>Send us a short or descriptive email with any questions, comments, or concerns you may have regarding Fit Mode's website or services.</p>
+                <div class="d-flex flex-row">
+                    <a href="#">Support@FitMode.com &nbsp;&nbsp;&nbsp;</a>
+                    <a href=#>↓</a>
+                </div>
+            </div>
+            <div class="d-flex flex-column">
+                <img src="~/images/thumb.png" alt="A Thumbs Up Clipart" />
+                <h3>Social Media</h3>
+                <p>Follow us on social media and earn extra bonus points as well as free cash when you participate in promotions that require you to repost certain content.</p>
+                <div class="d-flex flex-row">
+                    <img src="~/images/blueInstagram.png" alt="A Blue Instagram Logo">
+                    <img src="~/images/blueFacebook.png" alt="A Blue Facebook Logo">
+                    <img src="~/images/blueTwitter.png" alt="A Blue Twitter Logo">
+                </div>
+            </div>
+            <div class="d-flex flex-column">
+                <img src="~/images/support.png" alt="A Person And A Text Bubble Clipart" />
+                <h3>Customer Support</h3>
+                <p>Chat with a Fit Mode representative who can help you with various tasks such as answering questions, upgrading your membership or simply paying your bill.</p>
+                <div class="d-flex flex-row">
+                    <a href="#">Chat with a representative &nbsp;&nbsp;&nbsp;</a>
+                    <a href=#>↓</a>
+                </div>
+            </div>
+            <div class="d-flex flex-column">
+                <img src="~/images/address.png" alt="A Home And Location Clipart" />
+                <h3>Mailing Address</h3>
+                <p>Fit Mode Inc. <br> 1800 Something Ave. <br> Somewhere, CA 99550 <br> USA</p>
+                <div class="d-flex flex-row">
+                    <a href="#">Locate us on Google Maps &nbsp;&nbsp;&nbsp;</a>
+                    <a href=#>↓</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    @* The following div (transparent-footer-div) was implemented so that the footer can be seen at the 1200 and above breakpoint. *@
+    <div class="transparent-footer-div d-none d-xl-flex"></div>
+    <footer class="footer d-flex flex-column align-items-center">
+        <ul class="d-flex flex-column">
+            <a href="#"><li onclick="scrollToTop()">Home</li></a>
+            <a href="#"><li onclick="scrollToAbout()">About</li></a>
+            <a href="#"><li onclick="scrollToProducts()">Products</li></a>
+            <a href="#"><li onclick="scrollToContact()">Contact</li></a>
+        </ul>
+        <p>Receive Exclusive Offers When You Subscribe To Our Newsletter!</p>
+        <div class="d-flex flex-row">
+            <input placeholder="Your Email Address">
+            <a>Subscribe</a>
+            <a href=#>↓</a>
+        </div>
+        <div class="d-flex flex-row">
+            <img src="~/images/whiteInstagram.png" alt="A White Instagram Logo">
+            <img src="~/images/whiteFacebook.png" alt="A White Facebook Logo">
+            <img src="~/images/whiteTwitter.png" alt="A White Twitter Logo">
+        </div>
+        <div class="d-flex flex-row">
+            <p>COPYRIGHT ® 2024</p>
+            <p>FIT MODE CO.</p>
+        </div>
+        <p>SITE DESIGNED BY ANDREW</p>
+    </footer>
+
+    @* This hidden div is added in order to retrieve the CSRF token to access relevant requests (mostly POST request) *@
+    @if (!string.IsNullOrEmpty(requestToken)) {
+        <input id="RequestVerificationToken" type=hidden value="@requestToken" />
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+
+        document.querySelectorAll('.add-to-cart-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+            this.classList.add('active');
+            this.disabled = true;
+                setTimeout(() => {
+
+                    //The active class is just so that the background-color fade animation can happen so on mobile devices the user knows the button was pressed.
+                    this.classList.remove('active');
+                    this.disabled = false;
+                }, 1500);
+            var checkForDuplicateNameEntries = false;
+            var name = this.getAttribute('data-name');
+
+            const productNames = document.querySelectorAll('.cart-entry-productName');
+                productNames.forEach(productName => {
+                    var productNameChecker = productName.textContent;
+                    if (productNameChecker == name) {
+                        checkForDuplicateNameEntries = true;
+                    } else {
+                    }
+                })
+            var priceString = this.getAttribute('data-price');
+            var price = parseFloat(priceString);
+            var quantityString = this.getAttribute('data-quantity');
+            var quantity = parseInt(quantityString);
+            var image = this.getAttribute('data-image');
+            if (!checkForDuplicateNameEntries) {
+                const userEntriesContainer = document.querySelector('.cart-entries');
+                userEntriesContainer.classList.add('cart-entries', 'd-flex', 'flex-column');
+
+                    //The following if block is used to create a new shopping cart architecture if this is the first item they are adding.
+                    if (userEntriesContainer.innerHTML.trim() === '<p class="shopping-cart-empty">There are currently no items <br> in your shopping cart</p>') {
+                        const shoppingCart = document.querySelector('.shopping-cart');
+                        shoppingCart.innerHTML = '';
+                        userEntriesContainer.innerHTML = '';
+
+                        const shoppingCartTop = document.createElement('div');
+                        shoppingCartTop.classList.add('shopping-cart-top', 'container-fluid', 'd-flex', 'flex-row', 'justify-content-between');
+
+                        const shoppingCartDiv = document.createElement('div');
+                        const shoppingCartP = document.createElement('p');
+                        const shoppingCartImage = document.createElement('img');
+            
+                        shoppingCartP.textContent = 'Shopping Cart';
+                        shoppingCartImage.src = '@Url.Content("~/images/mobileExit.png")';
+                        shoppingCartImage.addEventListener('click', closeCart);
+                        shoppingCartImage.alt = 'An X Clipart';
+
+                        shoppingCartTop.appendChild(shoppingCartDiv);
+                        shoppingCartTop.appendChild(shoppingCartP);
+                        shoppingCartTop.appendChild(shoppingCartImage);
+
+                        shoppingCart.appendChild(shoppingCartTop);
+                        shoppingCart.appendChild(userEntriesContainer);
+                    }
+                var newTotal = 0;
+
+                const userEntry = document.createElement('div');
+                userEntry.classList.add('cart-entry', 'd-flex', 'flex-column');
+
+                const shoppingCart = document.querySelector('.shopping-cart');
+
+                const entryProductImage = document.createElement('img');
+                entryProductImage.classList.add('cart-entry-productImage');
+                entryProductImage.src = image;
+                entryProductImage.alt = 'An Image Of A Product In The Shopping Cart';
+
+                const entryOuterDiv = document.createElement('div');
+                entryOuterDiv.classList.add('cart-entry-outerDiv', 'd-flex', 'flex-row');
+
+                const entryInnerDiv = document.createElement('div');
+                entryInnerDiv.classList.add('cart-entry-innerDiv', 'd-flex', 'flex-row');
+
+                const entryMiddleColumn = document.createElement('div');
+                entryMiddleColumn.classList.add('cart-entry-middleColumn', 'd-flex', 'flex-column');
+
+                const entryProductName = document.createElement('p');
+                entryProductName.classList.add('cart-entry-productName');
+                entryProductName.textContent = name;
+
+                const entryQuantity = document.createElement('div');
+                entryQuantity.classList.add('cart-entry-quantity', 'd-flex', 'flex-row');
+
+                const entryMinusButton = document.createElement('button');
+                entryMinusButton.classList.add('cart-entry-minus');
+                entryMinusButton.textContent = '-';
+
+                const entryMinusSpinIcon = document.createElement('img');
+                entryMinusSpinIcon.classList.add('cart-entry-minus-spinIcon');
+                entryMinusSpinIcon.src = '@Url.Content("~/images/spin.png")';
+                entryMinusSpinIcon.alt = 'A Refresh Icon Clipart';
+
+                const entryQuantityCover = document.createElement('div');
+                entryQuantityCover.classList.add('cart-entry-quantity-cover');
+
+                const entryCount = document.createElement('p');
+                entryCount.classList.add('cart-entry-count');
+                entryCount.textContent = quantity;
+
+                const entryPlusButton = document.createElement('button');
+                entryPlusButton.classList.add('cart-entry-plus');
+                entryPlusButton.textContent = '+';
+
+                const entryPlusSpinIcon = document.createElement('img');
+                entryPlusSpinIcon.classList.add('cart-entry-plus-spinIcon');
+                entryPlusSpinIcon.src = '@Url.Content("~/images/spin.png")';
+                entryPlusSpinIcon.alt = 'A Refresh Icon Clipart';
+
+                const entryPrice = document.createElement('p');
+                entryPrice.classList.add('cart-entry-price');
+                entryPrice.textContent = '$' + price;
+
+                const entryTrashCan = document.createElement('img');
+                entryTrashCan.classList.add('cart-entry-trashCan');
+                entryTrashCan.src = '@Url.Content("~/images/trashcan.png")';
+                entryTrashCan.alt = 'A Trashcan Icon Clipart';
+
+                const entryTrashCanCover = document.createElement('div');
+                entryTrashCanCover.classList.add('cart-entry-trashCan-cover');
+
+                const entryTrashCanSpinIcon = document.createElement('img');
+                entryTrashCanSpinIcon.classList.add('cart-entry-trashCan-spinIcon');
+                entryTrashCanSpinIcon.src = '@Url.Content("~/images/spin.png")';
+                entryTrashCanSpinIcon.alt = 'A Refresh Icon Clipart';
+
+                //The following if block and else block of code update the shopping cart and the shopping cart total but if this is the first item the user is adding to the cart then the if statement executes.
+                //When the if statement executes it creates a new HTML element for the total and when the else statement executes it just updates the total from the previous item entry.
+                if (userEntriesContainer.innerHTML.trim() === '') {
+                    const shoppingCartTotal = document.createElement('div');
+                    shoppingCartTotal.classList.add('shopping-cart-total', 'd-flex', 'flex-row');
+
+                    const shoppingCartTotalp = document.createElement('p');
+                    shoppingCartTotalp.classList.add('shopping-cart-totalPrice');
+                    shoppingCartTotalp.textContent = "Total: $" + price;
+
+                    entryOuterDiv.appendChild(entryInnerDiv);
+                    entryOuterDiv.appendChild(entryTrashCan);
+                    entryOuterDiv.appendChild(entryTrashCanCover);
+                    entryOuterDiv.appendChild(entryTrashCanSpinIcon);
+
+                    entryInnerDiv.appendChild(entryProductImage);
+                    entryInnerDiv.appendChild(entryMiddleColumn);
+
+                    entryMiddleColumn.appendChild(entryProductName);
+                    entryMiddleColumn.appendChild(entryQuantity);
+                    entryMiddleColumn.appendChild(entryPrice);
+
+                    entryQuantity.appendChild(entryMinusButton);
+                    entryQuantity.appendChild(entryMinusSpinIcon);
+                    entryQuantity.appendChild(entryQuantityCover);
+                    entryQuantity.appendChild(entryCount);
+                    entryQuantity.appendChild(entryPlusButton);
+                    entryQuantity.appendChild(entryPlusSpinIcon);
+
+                    userEntry.appendChild(entryOuterDiv);
+                    userEntriesContainer.appendChild(userEntry);
+
+                    shoppingCartTotal.appendChild(shoppingCartTotalp);
+                    shoppingCart.appendChild(shoppingCartTotal);
+                } else {
+                    shoppingCartTotalA = document.querySelector('.shopping-cart-totalPrice');
+                    shoppingCartTotalB = shoppingCartTotalA.textContent;
+                    shoppingCartTotalC = shoppingCartTotalB.substring(8);
+                    shoppingCartTotalD = parseFloat(shoppingCartTotalC);
+                    shoppingCartTotalE = shoppingCartTotalD + price;
+                    shoppingCartTotalA.textContent = "Total: $" + shoppingCartTotalE.toFixed(2);
+
+                    entryOuterDiv.appendChild(entryInnerDiv);
+                    entryOuterDiv.appendChild(entryTrashCan);
+                    entryOuterDiv.appendChild(entryTrashCanCover);
+                    entryOuterDiv.appendChild(entryTrashCanSpinIcon);
+
+                    entryInnerDiv.appendChild(entryProductImage);
+                    entryInnerDiv.appendChild(entryMiddleColumn);
+
+                    entryMiddleColumn.appendChild(entryProductName);
+                    entryMiddleColumn.appendChild(entryQuantity);
+                    entryMiddleColumn.appendChild(entryPrice);
+
+                    entryQuantity.appendChild(entryMinusButton);
+                    entryQuantity.appendChild(entryMinusSpinIcon);
+                    entryQuantity.appendChild(entryQuantityCover);
+                    entryQuantity.appendChild(entryCount);
+                    entryQuantity.appendChild(entryPlusButton);
+                    entryQuantity.appendChild(entryPlusSpinIcon);
+
+                    userEntry.appendChild(entryOuterDiv);
+                    userEntriesContainer.appendChild(userEntry);
+                }
+                addToCart(name, price, quantity, image);
+                console.log("WHAT IS GOING ON1");
+                showCart();
+                console.log("WHAT IS GOING ON2");
+            } else {
+                console.log("WHAT IS GOING ON3");
+                showCart();
+                console.log("WHAT IS GOING ON4");
+            }
+            });
+        });
+
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('cart-entry-plus')) {
+                const parentContainerA = event.target.closest('.cart-entry-quantity');
+                    const childElementA1 = parentContainerA.querySelector('.cart-entry-plus-spinIcon');
+                    const childElementA2 = parentContainerA.querySelector('.cart-entry-count');
+                    const childElementA3 = parentContainerA.querySelector('.cart-entry-minus');
+
+                const parentContainerB = event.target.closest('.cart-entry');
+                    const childElementB1 = parentContainerB.querySelector('.cart-entry-price');
+                        const childElementB1a = childElementB1.textContent;
+                        const childElementB1b = childElementB1a.substring(1);
+                        var childElementB1c = parseFloat(childElementB1b);
+                    const childElementB2 = parentContainerB.querySelector('.cart-entry-outerDiv .cart-entry-trashCan');
+                    const childElementB3 = parentContainerB.querySelector('.cart-entry-quantity-cover');
+                    const childElementB4 = parentContainerB.querySelector('.cart-entry-trashCan-cover');
+
+                const nonChildParentElementA = document.querySelector('.shopping-cart-totalPrice');
+                    const nonChildParentElementA1 = nonChildParentElementA.textContent;
+                    const nonChildParentElementA2 = nonChildParentElementA1.substring(8);
+                    var nonChildParentElementA3 = parseFloat(nonChildParentElementA2);
+
+                event.target.style.opacity = '0';
+                event.target.disabled = true;
+                childElementA1.style.display = 'flex';
+
+                //These were added to create an invisible div across the buttons so they can't be pressed for the duration of the timeout
+                //It helps prevent the user from repetitively clicking the buttons, which can have an affect on the website performance
+                const quantityCovers = document.querySelectorAll('.cart-entry-quantity-cover');
+                quantityCovers.forEach(quantityCover => {
+                    quantityCover.style.display = 'flex';
+                });
+
+                //These were added to create an invisible div across the button so it can't be pressed for the duration of the timeout
+                //It helps prevent the user from repetitively clicking the button, which can have an affect on the website performance
+                const trashCanCovers = document.querySelectorAll('.cart-entry-trashCan-cover');
+                trashCanCovers.forEach(trashCanCover => {
+                    trashCanCover.style.display = 'flex';
+                });
+
+                setTimeout(() => {
+                    event.target.style.opacity = '1';
+                    event.target.disabled = false;
+                    childElementA1.style.display = 'none';
+
+                    const currentQuantity = parseInt(childElementA2.textContent);
+                    const newQuantity = currentQuantity + 1;
+                    childElementA2.textContent = newQuantity.toString();
+                    childElementB1c = childElementB1c / currentQuantity;
+
+                    var newPrice = childElementB1c * newQuantity;
+                    childElementB1.textContent = "$" + newPrice.toFixed(2);
+                    nonChildParentElementA3 = nonChildParentElementA3 + childElementB1c;
+                    nonChildParentElementA.textContent = "Total: $" + nonChildParentElementA3.toFixed(2);
+
+                    const quantityCovers = document.querySelectorAll('.cart-entry-quantity-cover');
+                    quantityCovers.forEach(quantityCover => {
+                        quantityCover.style.display = 'none';
+                    });
+
+                    const trashCanCovers = document.querySelectorAll('.cart-entry-trashCan-cover');
+                    trashCanCovers.forEach(trashCanCover => {
+                        trashCanCover.style.display = 'none';
+                    });
+
+                    var nameElement = parentContainerB.querySelector('.cart-entry-productName');
+                    var name = nameElement.textContent;
+                    var price = newPrice;
+                    var quantityString = childElementA2.textContent
+                    var quantity = parseInt(quantityString);
+                    var imageElement = parentContainerB.querySelector('.cart-entry-productImage');
+                    var image = imageElement.src;
+                    quantityChange(name, price, quantity, image);
+                }, 1000);
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('cart-entry-minus')) {
+                const parentContainerA = event.target.closest('.cart-entry-quantity');
+                    const childElementA1 = parentContainerA.querySelector('.cart-entry-minus-spinIcon');
+                    const childElementA2 = parentContainerA.querySelector('.cart-entry-count');
+                    const childElementA3 = parentContainerA.querySelector('.cart-entry-minus');
+
+                const parentContainerB = event.target.closest('.cart-entry');
+                    const childElementB1 = parentContainerB.querySelector('.cart-entry-price');
+                        const childElementB1a = childElementB1.textContent;
+                        const childElementB1b = childElementB1a.substring(1);
+                        var childElementB1c = parseFloat(childElementB1b);
+                    const childElementB2 = parentContainerB.querySelector('.cart-entry-outerDiv .cart-entry-trashCan');
+                    const childElementB3 = parentContainerB.querySelector('.cart-entry-quantity-cover');
+                    const childElementB4 = parentContainerB.querySelector('.cart-entry-trashCan-cover');
+
+                const nonChildParentElementA = document.querySelector('.shopping-cart-totalPrice');
+                    const nonChildParentElementA1 = nonChildParentElementA.textContent;
+                    const nonChildParentElementA2 = nonChildParentElementA1.substring(8);
+                    var nonChildParentElementA3 = parseFloat(nonChildParentElementA2);
+
+                const dontLetItemQuantityGoToZero = parseInt(childElementA2.textContent);
+                if (dontLetItemQuantityGoToZero == 1) {
+                } else {
+                    event.target.style.opacity = '0';
+                    event.target.disabled = true;
+                    childElementA1.style.display = 'flex';
+
+                    //These were added to create an invisible div across the buttons so they can't be pressed for the duration of the timeout
+                    //It helps prevent the user from repetitively clicking the buttons, which can have an affect on the website performance
+                    const quantityCovers = document.querySelectorAll('.cart-entry-quantity-cover');
+                    quantityCovers.forEach(quantityCover => {
+                        quantityCover.style.display = 'flex';
+                    });
+
+                    //These were added to create an invisible div across the button so it can't be pressed for the duration of the timeout
+                    //It helps prevent the user from repetitively clicking the button, which can have an affect on the website performance
+                    const trashCanCovers = document.querySelectorAll('.cart-entry-trashCan-cover');
+                    trashCanCovers.forEach(trashCanCover => {
+                        trashCanCover.style.display = 'flex';
+                    });
+                    setTimeout(() => {
+                        event.target.style.opacity = '1';
+                        event.target.disabled = false;
+                        childElementA1.style.display = 'none';
+
+                        const currentQuantity = parseInt(childElementA2.textContent);
+                        const newQuantity = currentQuantity - 1;
+                        childElementA2.textContent = newQuantity.toString();
+                        childElementB1c = childElementB1c / currentQuantity;
+
+                        var newPrice = childElementB1c * newQuantity;
+                        childElementB1.textContent = "$" + newPrice.toFixed(2);
+                        nonChildParentElementA3 = nonChildParentElementA3 - childElementB1c;
+                        nonChildParentElementA.textContent = "Total: $" + nonChildParentElementA3.toFixed(2);
+
+                        const quantityCovers = document.querySelectorAll('.cart-entry-quantity-cover');
+                        quantityCovers.forEach(quantityCover => {
+                            quantityCover.style.display = 'none';
+                        });
+
+                        const trashCanCovers = document.querySelectorAll('.cart-entry-trashCan-cover');
+                        trashCanCovers.forEach(trashCanCover => {
+                            trashCanCover.style.display = 'none';
+                        });
+
+                        var nameElement = parentContainerB.querySelector('.cart-entry-productName');
+                        var name = nameElement.textContent;
+                        var price = newPrice;
+                        var quantityString = childElementA2.textContent
+                        var quantity = parseInt(quantityString);
+                        var imageElement = parentContainerB.querySelector('.cart-entry-productImage');
+                        var image = imageElement.src;
+                        quantityChange(name, price, quantity, image);
+                    }, 1000);
+                }
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('cart-entry-trashCan')) {
+                const parentContainerA = event.target.closest('.cart-entry');
+                    const childElementA1 = parentContainerA.querySelector('.cart-entry-price');
+                        const childElementA1a = childElementA1.textContent;
+                        const childElementA1b = childElementA1a.substring(1);
+                        const childElementA1c = parseFloat(childElementA1b);
+                    const childElementA2 = parentContainerA.querySelector('.cart-entry-trashCan-spinIcon');
+
+                const parentContainerB = document.querySelector('.cart-entries');
+                const parentContainerC = document.querySelector('.shopping-cart');
+                    const childElementC1 = document.querySelector('.shopping-cart-totalPrice');
+                    const childElementC2 = childElementC1.textContent;
+                    const childElementC3 = childElementC2.substring(8);
+                    var childElementC4 = parseFloat(childElementC3);
+                    childElementC4 = childElementC4 - childElementA1c;
+
+                event.target.style.opacity = '0';
+                event.target.disabled = true;
+                childElementA2.style.display = 'flex';
+
+                //These were added to create an invisible div across the buttons so they can't be pressed for the duration of the timeout
+                //It helps prevent the user from repetitively clicking the buttons, which can have an affect on the website performance
+                const quantityCovers = document.querySelectorAll('.cart-entry-quantity-cover');
+                quantityCovers.forEach(quantityCover => {
+                    quantityCover.style.display = 'flex';
+                });
+
+                //These were added to create an invisible div across the button so it can't be pressed for the duration of the timeout
+                //It helps prevent the user from repetitively clicking the button, which can have an affect on the website performance
+                const trashCanCovers = document.querySelectorAll('.cart-entry-trashCan-cover');
+                trashCanCovers.forEach(trashCanCover => {
+                    trashCanCover.style.display = 'flex';
+                });
+                setTimeout(() => {
+                    event.target.style.opacity = '1';
+                    event.target.disabled = false;
+                    childElementA2.style.display = 'none';
+
+                    const quantityCovers = document.querySelectorAll('.cart-entry-quantity-cover');
+                    quantityCovers.forEach(quantityCover => {
+                        quantityCover.style.display = 'none';
+                    });
+
+                    const trashCanCovers = document.querySelectorAll('.cart-entry-trashCan-cover');
+                    trashCanCovers.forEach(trashCanCover => {
+                        trashCanCover.style.display = 'none';
+                    });
+                    parentContainerA.remove();
+                    childElementC1.textContent = "Total: $" + childElementC4.toFixed(2);
+                    var nameElement = parentContainerA.querySelector('.cart-entry-productName');
+                    var name = nameElement.textContent;
+                    removeFromCart(name);
+
+                        //The following if block creates a new shopping cart architecture if the last entry was removed so that it can add the shopping-cart-empty class at the end.
+                        if (parentContainerB.innerHTML.trim() === '') {
+                            parentContainerB.innerHTML = '';
+                            parentContainerC.innerHTML = '';
+
+                            const shoppingCartTop = document.createElement('div');
+                            const userEntriesContainer = document.createElement('div');
+                            userEntriesContainer.classList.add('cart-entries', 'd-flex', 'flex-column');
+                            shoppingCartTop.classList.add('shopping-cart-top', 'container-fluid', 'd-flex', 'flex-row', 'justify-content-between');
+
+                            const shoppingCartDiv = document.createElement('div');
+                            const shoppingCartP = document.createElement('p');
+                            const shoppingCartImage = document.createElement('img');
+
+                            const userEntriesP = document.createElement('p');
+                            userEntriesP.classList.add('shopping-cart-empty');
+                            userEntriesP.innerHTML = "There are currently no items <br> in your shopping cart";
+                            userEntriesContainer.appendChild(userEntriesP);
+
+                            shoppingCartP.textContent = 'Shopping Cart';
+                            shoppingCartImage.src = '@Url.Content("~/images/mobileExit.png")';
+                            shoppingCartImage.addEventListener('click', closeCart);
+                            shoppingCartImage.alt = 'An X Clipart';
+
+                            shoppingCartTop.appendChild(shoppingCartDiv);
+                            shoppingCartTop.appendChild(shoppingCartP);
+                            shoppingCartTop.appendChild(shoppingCartImage);
+
+                            parentContainerC.appendChild(shoppingCartTop);
+                            parentContainerC.appendChild(userEntriesContainer);
+
+                        } else {
+                        }
+                }, 1000);
+            }
+        });
+
+        function addToCart(name, price, quantity, image) {
+            $.ajax({
+                type: 'POST', 
+                url: '@Url.Page("/Index", null, new { handler = "Add" })', 
+                data: { name: name, price: price, quantity: quantity, image: image }, 
+                contentType: 'application/x-www-form-urlencoded',
+                headers: {
+                            RequestVerificationToken:
+                                document.getElementById("RequestVerificationToken").value
+                         },
+                success: function () {
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log("Error: " + errorThrown);
+                }
+            });
+        }
+
+        function quantityChange(name, price, quantity, image) {
+            $.ajax({
+                type: 'POST', 
+                url: '@Url.Page("/Index", null, new { handler = "Quantity" })', 
+                data: { name: name, price: price, quantity: quantity, image: image }, 
+                contentType: 'application/x-www-form-urlencoded',
+                headers: {
+                            RequestVerificationToken:
+                                document.getElementById("RequestVerificationToken").value
+                         },
+                success: function () {
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log("Error: " + errorThrown);
+                }
+            });
+        }
+
+        function removeFromCart(name) {
+            $.ajax({
+                type: 'POST', 
+                url: '@Url.Page("/Index", null, new { handler = "Remove" })', 
+                data: { name: name }, 
+                contentType: 'application/x-www-form-urlencoded',
+                headers: {
+                            RequestVerificationToken:
+                                document.getElementById("RequestVerificationToken").value
+                         },
+                success: function () {
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log("Error: " + errorThrown);
+                }
+            });
+        }
+        
+    </script>
+</body>
+</html>
