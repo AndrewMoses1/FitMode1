@@ -29,7 +29,7 @@ builder.Services.AddLogging(loggingBuilder =>
 
 builder.Services.AddSingleton<CosmosClient>(serviceProvider =>
 {
-    return new CosmosClient("AccountEndpoint=https://springbootproject2.documents.azure.com:443/;AccountKey=TcIupamk2VmP8Be7fyJAZ5qqiOyZjOCLlsdcFNQLEulhrCiyB8EtwRf2TYGcgLGW7SxQQJdhW1AgACDbI1OBjA==;Db=shoppingCart;Collection=razorLogin;");
+    return new CosmosClient("AccountEndpoint=[SECRET ENDPOINT]");
 });
 
 var app = builder.Build();
